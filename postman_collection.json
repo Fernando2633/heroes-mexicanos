@@ -1,0 +1,288 @@
+{
+	"info": {
+		"_postman_id": "c1f2e3d4-5678-90ab-cdef-1234567890ab",
+		"name": "Práctica I y II - API Héroes Mexicanos (Hexagonal Architecture)",
+		"description": "Colección completa de pruebas para la API REST de Héroes Mexicanos desarrollada con Spring Boot y Arquitectura Hexagonal.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Registrar Héroe (Exitoso)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"nombre\": \"Belisario\",\n  \"apellido\": \"Domínguez Palencia\",\n  \"fechaNacimiento\": \"1863-04-25\",\n  \"estadoNacimiento\": \"Chiapas\",\n  \"epoca\": \"Revolución Mexicana\",\n  \"movimiento\": \"Libertad de Expresión y Oposición a Huerta\",\n  \"descripcion\": \"Médico y político chiapaneco célebre por su histórico discurso en el Senado contra la dictadura de Victoriano Huerta.\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Intentar Registrar con Datos Faltantes (Error 400)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"nombre\": \"\",\n  \"apellido\": \"Prueba\",\n  \"fechaNacimiento\": \"2030-01-01\",\n  \"estadoNacimiento\": \"\",\n  \"epoca\": \"Independencia\",\n  \"movimiento\": \"\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Consultar Todos los Héroes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Consultar Héroe Existente (ID: 1)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. Consultar Héroe Inexistente (Error 404)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes/99999",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes",
+						"99999"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. Modificar Héroe Existente (ID: 1)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"nombre\": \"Miguel\",\n  \"apellido\": \"Hidalgo y Costilla\",\n  \"fechaNacimiento\": \"1753-05-08\",\n  \"estadoNacimiento\": \"Guanajuato\",\n  \"epoca\": \"Independencia\",\n  \"movimiento\": \"Movimiento Insurgente de 1810\",\n  \"descripcion\": \"Padre de la Patria mexicana. Inició el movimiento independentista la madrugada del 16 de septiembre de 1810 en Dolores.\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7. Intentar Modificar Héroe Inexistente (Error 404)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"nombre\": \"Fantasmas\",\n  \"apellido\": \"Inexistente\",\n  \"fechaNacimiento\": \"1800-01-01\",\n  \"estadoNacimiento\": \"Desconocido\",\n  \"epoca\": \"Independencia\",\n  \"movimiento\": \"Ninguno\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes/99999",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes",
+						"99999"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8. Eliminar Héroe Existente",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes/21",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes",
+						"21"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "9. Buscar por Época Histórica",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes/epoca/Independencia",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes",
+						"epoca",
+						"Independencia"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10. Buscar por Movimiento Histórico",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes/movimiento/Revolución",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes",
+						"movimiento",
+						"Revolución"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "11. Buscar por Estado de Nacimiento",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/heroes/estado/Michoacán",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"heroes",
+						"estado",
+						"Michoacán"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
