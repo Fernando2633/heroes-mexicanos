@@ -6,26 +6,42 @@ services:
     name: heroes-mexicanos
     runtime: docker
     dockerfilePath: ./Dockerfile
-    plan: free                    # Plan gratuito de Render
+    plan: free
 
-    # Variables de entorno
     envVars:
-      # H2 en memoria (sin BD externa) — funciona out-of-the-box en Render
+      # ── Conecta el Web Service a la BD PostgreSQL de Render ────────────────
+      # Render convierte "fromDatabase.property" a la variable de entorno
+      # DB_URL / DB_USERNAME / DB_PASSWORD automáticamente al hacer deploy.
+      - key: DB_URL
+        fromDatabase:
+          name: actividad4            # ← nombre exacto de tu DB en Render
+          property: connectionString  # formato: jdbc:postgresql://host/db
+
+      - key: DB_USERNAME
+        fromDatabase:
+          name: actividad4
+          property: user
+
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: actividad4
+          property: password
+
+      # Desactiva H2 console y el seed SQL en producción
       - key: H2_CONSOLE
-        value: "false"            # Deshabilitar consola H2 en producción
+        value: "false"
 
-      # ── Para conectar MySQL/PostgreSQL externo ─────────────────────────────
-      # Descomenta y completa si tienes una BD en PlanetScale, Railway, etc.
-      # - key: DB_URL
-      #   value: jdbc:mysql://host:3306/heroes_mexicanos?useSSL=true&allowPublicKeyRetrieval=true
-      # - key: DB_USERNAME
-      #   sync: false             # Se configura como "secret" en el dashboard
-      # - key: DB_PASSWORD
-      #   sync: false
+      - key: SQL_INIT_MODE
+        value: "never"
 
-    # Health check — Render verifica que la app responda
+    # Render verifica que la app responda antes de marcarla como online
     healthCheckPath: /api/v1/heroes
 
-    # Auto-deploy desde la rama main de GitHub
+    # Auto-deploy cuando hay push a main
     autoDeploy: true
     branch: main
+
+databases:
+  - name: actividad4               # ← debe coincidir con el nombre de tu DB en Render
+    plan: free
+    databaseName: heroes_mexicanos
