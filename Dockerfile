@@ -1,6 +1,7 @@
 # ─────────────────────────────────────────────────────────────
 # Dockerfile – Heroes Mexicanos (Spring Boot)
-# Multi-stage build: build con Maven → imagen mínima JRE
+# Multi-stage build: Maven → JRE Alpine
+# Incluye entrypoint.sh para compatibilidad con Render PostgreSQL
 # ─────────────────────────────────────────────────────────────
 
 # ── Stage 1: Build ──────────────────────────────────────────
@@ -8,16 +9,15 @@ FROM eclipse-temurin:17-jdk-alpine AS builder
 
 WORKDIR /app
 
-# Copiamos el wrapper de Maven primero para aprovechar caché de capas
 COPY mvnw .
 COPY .mvn/ .mvn/
 RUN chmod +x mvnw
 
-# Descargamos dependencias (se cachean si pom.xml no cambia)
+# Descargar dependencias primero (aprovecha caché de capas)
 COPY pom.xml .
 RUN ./mvnw dependency:go-offline -B --no-transfer-progress
 
-# Compilamos el proyecto
+# Compilar
 COPY src/ src/
 RUN ./mvnw package -DskipTests -B --no-transfer-progress
 
@@ -26,21 +26,25 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Metadatos
 LABEL maintainer="zeriklabs"
-LABEL description="Sistema de Gestion de Heroes Mexicanos - Arquitectura Hexagonal"
+LABEL description="Sistema Hexagonal - Gestión de Héroes Mexicanos"
 
-# Usuario no-root por seguridad
+# Instalar bash/sh mínimo para el entrypoint
+RUN apk add --no-cache bash
+
+# Usuario no-root
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Copiar JAR y script de entrypoint
+COPY --from=builder /app/target/*.jar app.jar
+COPY entrypoint.sh entrypoint.sh
+RUN chmod +x entrypoint.sh && chown appuser:appgroup app.jar entrypoint.sh
+
 USER appuser
 
-# Copiamos solo el JAR generado
-COPY --from=builder /app/target/*.jar app.jar
-
-# Render inyecta la variable PORT; por defecto 8080
 EXPOSE 8080
 
-# JVM optimizada para contenedores pequeños
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+# El entrypoint convierte DATABASE_URL → SPRING_DATASOURCE_* antes de arrancar
+ENTRYPOINT ["./entrypoint.sh"]
