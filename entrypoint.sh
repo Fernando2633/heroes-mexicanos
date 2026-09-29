@@ -27,7 +27,8 @@ if [ -n "$DATABASE_URL" ]; then
     export SPRING_DATASOURCE_USERNAME="$DB_USER"
     export SPRING_DATASOURCE_PASSWORD="$DB_PASS"
 
-    # Indicar a Hibernate el dialecto explícitamente
+    # Dialecto PostgreSQL — sobreescribe el default H2 de application.properties
+    export DB_PLATFORM="org.hibernate.dialect.PostgreSQLDialect"
     export SPRING_JPA_DATABASE_PLATFORM="org.hibernate.dialect.PostgreSQLDialect"
 
     # Desactivar H2 console y seed en producción
