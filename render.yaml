@@ -1,0 +1,31 @@
+# render.yaml — Configuración de despliegue para Render.com
+# Documentación: https://render.com/docs/render-yaml-spec
+
+services:
+  - type: web
+    name: heroes-mexicanos
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free                    # Plan gratuito de Render
+
+    # Variables de entorno
+    envVars:
+      # H2 en memoria (sin BD externa) — funciona out-of-the-box en Render
+      - key: H2_CONSOLE
+        value: "false"            # Deshabilitar consola H2 en producción
+
+      # ── Para conectar MySQL/PostgreSQL externo ─────────────────────────────
+      # Descomenta y completa si tienes una BD en PlanetScale, Railway, etc.
+      # - key: DB_URL
+      #   value: jdbc:mysql://host:3306/heroes_mexicanos?useSSL=true&allowPublicKeyRetrieval=true
+      # - key: DB_USERNAME
+      #   sync: false             # Se configura como "secret" en el dashboard
+      # - key: DB_PASSWORD
+      #   sync: false
+
+    # Health check — Render verifica que la app responda
+    healthCheckPath: /api/v1/heroes
+
+    # Auto-deploy desde la rama main de GitHub
+    autoDeploy: true
+    branch: main

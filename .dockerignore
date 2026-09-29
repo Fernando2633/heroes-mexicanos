@@ -1,0 +1,31 @@
+# ── Compilación / Maven ────────────────────────────────────
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# ── IDE ────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.classpath
+*.project
+*.settings/
+
+# ── Sistema operativo ──────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Git ───────────────────────────────────────────────────
+.git/
+.gitignore
+.gitattributes
+
+# ── Node / Frontend dev tools (si los hubiera) ────────────
+node_modules/
+npm-debug.log
+
+# ── Documentación y extras ────────────────────────────────
+HELP.md
