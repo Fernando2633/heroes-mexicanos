@@ -1,7 +1,9 @@
 # Documentación de la Práctica: Sistema de Gestión de Héroes Mexicanos
 
 **Asignatura:** Desarrollo de Aplicaciones Web / Web Client  
-**Tecnologías:** Java 17+, Spring Boot, Spring Data JPA, MySQL / H2, HTML5, CSS3, JavaScript (Fetch API), Arquitectura Hexagonal.
+**Tecnologías:** Java 17, Spring Boot 3.3.4, Spring Data JPA, PostgreSQL (Render) / H2 (local), HTML5, CSS3, JavaScript (Fetch API), Arquitectura Hexagonal.  
+**Repositorio:** https://github.com/zeriklabs/Practica_1_2  
+**Deploy:** https://heroes-mexicanos.onrender.com
 
 ---
 
@@ -35,7 +37,7 @@ com.webclient.practica
     │
     └── out.persistence              # Adaptador de Persistencia (Salida Base de Datos)
         ├── HeroeJpaEntity.java      # Entidad mapeada para JPA (@Entity, @Table)
-        ├── SpringDataHeroeRepository.java # JpaRepository para MySQL/H2
+        ├── SpringDataHeroeRepository.java # JpaRepository para PostgreSQL/H2
         ├── HeroePersistenceAdapter.java  # Adaptador JPA que implementa HeroeRepositoryPort
         └── inmemory
             └── InMemoryHeroeAdapter.java # Adaptador Secundario En Memoria (Sección 25)
@@ -61,7 +63,7 @@ Definen cómo el dominio solicita datos u operaciones de persistencia hacia el e
 Conectar la interfaz del puerto de salida (`HeroeRepositoryPort`) con la tecnología concreta de persistencia (Spring Data JPA / MySQL / In-Memory), traduciendo los modelos de dominio a entidades de persistencia y viceversa.
 
 ### 6. ¿Qué ventajas tendría cambiar MySQL por otra base de datos?
-Permite adaptar el sistema a nuevas necesidades operativas (por ejemplo, menor latencia, soporte NoSQL o bases de datos en memoria para pruebas rápidas) con riesgo cero de romper las reglas de negocio de la aplicación.
+Permite adaptar el sistema a nuevas necesidades operativas (por ejemplo, menor latencia, soporte NoSQL o bases de datos en memoria para pruebas rápidas) con riesgo cero de romper las reglas de negocio de la aplicación. En esta práctica se demostró al migrar de H2 (local) a **PostgreSQL en Render** sin tocar una sola línea del dominio ni los puertos.
 
 ### 7. ¿Qué componente debería modificarse si se cambia la tecnología de persistencia?
 Únicamente el **Adaptador de Salida** (`HeroePersistenceAdapter` o la implementación de `HeroeRepositoryPort`). El Dominio, los Puertos, los Servicios de Aplicación y los Controllers REST **permanecen 100% intactos**.
@@ -118,3 +120,26 @@ Importar el archivo `postman_collection.json` en Postman. Incluye las 11 pruebas
 9. Buscar por época histórica (`GET /api/v1/heroes/epoca/{epoca}`)
 10. Buscar por movimiento (`GET /api/v1/heroes/movimiento/{movimiento}`)
 11. Buscar por estado de nacimiento (`GET /api/v1/heroes/estado/{estado}`)
+
+---
+
+## 5. Despliegue en Render (Producción)
+
+### Arquitectura de despliegue
+- **Web Service:** Contenedor Docker (imagen `eclipse-temurin:17-jre-alpine`) con build multi-stage Maven.
+- **Base de datos:** PostgreSQL gestionado por Render (plan gratuito).
+- **Conexión:** La variable `DB_URL` de Render se convierte automáticamente al formato JDBC mediante `entrypoint.sh`.
+
+### Variables de entorno en Render
+| Variable | Descripción |
+|---|---|
+| `DB_URL` | URL de conexión PostgreSQL (`postgresql://user:pass@host/db`) |
+| `PORT` | Puerto del servidor (inyectado automáticamente por Render) |
+
+### Archivos de despliegue
+| Archivo | Propósito |
+|---|---|
+| `Dockerfile` | Build multi-stage Maven → JRE Alpine |
+| `entrypoint.sh` | Convierte la URL de BD al formato JDBC |
+| `render.yaml` | Infraestructura como código para Render |
+| `heroes_mexicanos.sql` | Script SQL compatible con PostgreSQL |
