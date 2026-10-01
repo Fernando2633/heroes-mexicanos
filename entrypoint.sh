@@ -1,60 +1,53 @@
 #!/bin/sh
-# entrypoint.sh
-# Normaliza la URL de BD de Render al formato JDBC que necesita Spring Boot.
-# Maneja tanto DATABASE_URL como DB_URL, y tanto postgresql:// como jdbc:postgresql://
-
+# Convierte la DATABASE_URL de Render (postgresql://user:pass@host:port/db)
+# al formato JDBC que usa Spring Boot y arranca la app.
+# Variables opcionales:
+#   DB_SCHEMA -> schema propio dentro de la BD (para compartir una sola BD entre varias apps)
 set -e
 
-# ── 1. Determinar cuál variable tiene la URL de BD ─────────────────────────
-# Prioridad: DATABASE_URL > DB_URL
 RAW_URL="${DATABASE_URL:-$DB_URL}"
+EXTRA_OPTS=""
 
 if [ -n "$RAW_URL" ]; then
+  case "$RAW_URL" in
+    jdbc:*)
+      JDBC_URL="$RAW_URL"
+      ;;
+    postgres://*|postgresql://*)
+      REST="${RAW_URL#*://}"
+      CREDS="${REST%@*}"
+      HOSTDB="${REST##*@}"
+      export SPRING_DATASOURCE_USERNAME="${CREDS%%:*}"
+      export SPRING_DATASOURCE_PASSWORD="${CREDS#*:}"
+      JDBC_URL="jdbc:postgresql://${HOSTDB}"
+      ;;
+    *)
+      echo "==> Formato de DATABASE_URL no reconocido"
+      exit 1
+      ;;
+  esac
 
-    echo "==> URL de BD detectada, convirtiendo al formato JDBC..."
+  # Si vienen usuario/password por separado, tienen prioridad
+  [ -n "$DB_USERNAME" ] && export SPRING_DATASOURCE_USERNAME="$DB_USERNAME"
+  [ -n "$DB_USER" ] && export SPRING_DATASOURCE_USERNAME="$DB_USER"
+  [ -n "$DB_PASSWORD" ] && export SPRING_DATASOURCE_PASSWORD="$DB_PASSWORD"
 
-    case "$RAW_URL" in
-
-        jdbc:postgresql://* | jdbc:postgres://*)
-            # Ya viene en formato JDBC — solo extraemos usuario y contraseña si no están separados
-            echo "==> Formato JDBC detectado, usándolo directamente."
-            export SPRING_DATASOURCE_URL="$RAW_URL"
-            ;;
-
-        postgresql://* | postgres://*)
-            # Formato Render: postgresql://user:password@host:port/dbname
-            # Eliminamos el esquema
-            STRIPPED=$(echo "$RAW_URL" | sed 's|^postgresql://||;s|^postgres://||')
-            # Separamos userinfo del hostpath
-            USERINFO=$(echo "$STRIPPED" | cut -d'@' -f1)
-            HOSTPATH=$(echo "$STRIPPED"  | cut -d'@' -f2)
-            # Extraemos usuario y contraseña
-            DB_USER=$(echo "$USERINFO" | cut -d':' -f1)
-            DB_PASS=$(echo "$USERINFO" | cut -d':' -f2-)
-
-            export SPRING_DATASOURCE_URL="jdbc:postgresql://${HOSTPATH}"
-            export SPRING_DATASOURCE_USERNAME="$DB_USER"
-            export SPRING_DATASOURCE_PASSWORD="$DB_PASS"
-            ;;
-
-        *)
-            echo "==> ADVERTENCIA: formato de URL desconocido: $RAW_URL"
-            ;;
+  if [ -n "$DB_SCHEMA" ]; then
+    case "$JDBC_URL" in
+      *\?*) JDBC_URL="${JDBC_URL}&currentSchema=${DB_SCHEMA}" ;;
+      *)    JDBC_URL="${JDBC_URL}?currentSchema=${DB_SCHEMA}" ;;
     esac
+    EXTRA_OPTS="-Dspring.jpa.properties.hibernate.default_schema=${DB_SCHEMA} -Dspring.jpa.properties.hibernate.hbm2ddl.create_namespaces=true"
+  fi
 
-    # Dialecto PostgreSQL — sobreescribe el default H2 de application.properties
-    export DB_PLATFORM="org.hibernate.dialect.PostgreSQLDialect"
-    export SPRING_JPA_DATABASE_PLATFORM="org.hibernate.dialect.PostgreSQLDialect"
-
-    # Desactivar H2 console y seed SQL en producción
-    export SPRING_H2_CONSOLE_ENABLED="false"
-    export SPRING_SQL_INIT_MODE="never"
-
-    echo "==> Conectando a: ${SPRING_DATASOURCE_URL}"
-    echo "==> Usuario     : ${SPRING_DATASOURCE_USERNAME}"
-
+  export SPRING_DATASOURCE_URL="$JDBC_URL"
+  export SPRING_DATASOURCE_DRIVER_CLASS_NAME="org.postgresql.Driver"
+  export SPRING_JPA_DATABASE_PLATFORM="org.hibernate.dialect.PostgreSQLDialect"
+  export SPRING_H2_CONSOLE_ENABLED="false"
+  export SPRING_SQL_INIT_MODE="never"
+  echo "==> Usando PostgreSQL (schema: ${DB_SCHEMA:-public})"
 else
-    echo "==> Sin URL de BD (DATABASE_URL / DB_URL). Usando H2 en memoria (desarrollo local)."
+  echo "==> Sin DATABASE_URL, se usa la config local de application.properties"
 fi
 
-exec java $JAVA_OPTS -jar app.jar
+exec java $JAVA_OPTS $EXTRA_OPTS -jar app.jar

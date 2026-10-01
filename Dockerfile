@@ -1,50 +1,16 @@
-# ─────────────────────────────────────────────────────────────
-# Dockerfile – Heroes Mexicanos (Spring Boot)
-# Multi-stage build: Maven → JRE Alpine
-# Incluye entrypoint.sh para compatibilidad con Render PostgreSQL
-# ─────────────────────────────────────────────────────────────
-
-# ── Stage 1: Build ──────────────────────────────────────────
-FROM eclipse-temurin:17-jdk-alpine AS builder
-
+# Etapa 1: compilar con Maven
+FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
-
-COPY mvnw .
-COPY .mvn/ .mvn/
-RUN chmod +x mvnw
-
-# Descargar dependencias primero (aprovecha caché de capas)
 COPY pom.xml .
-RUN ./mvnw dependency:go-offline -B --no-transfer-progress
+COPY src ./src
+RUN mvn -B -q clean package -DskipTests
 
-# Compilar
-COPY src/ src/
-RUN ./mvnw package -DskipTests -B --no-transfer-progress
-
-# ── Stage 2: Runtime ─────────────────────────────────────────
+# Etapa 2: imagen ligera solo con el JAR
 FROM eclipse-temurin:17-jre-alpine
-
 WORKDIR /app
-
-LABEL maintainer="zeriklabs"
-LABEL description="Sistema Hexagonal - Gestión de Héroes Mexicanos"
-
-# Instalar bash/sh mínimo para el entrypoint
-RUN apk add --no-cache bash
-
-# Usuario no-root
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Copiar JAR y script de entrypoint
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 COPY entrypoint.sh entrypoint.sh
-RUN chmod +x entrypoint.sh && chown appuser:appgroup app.jar entrypoint.sh
-
-USER appuser
-
+RUN sed -i 's/\r$//' entrypoint.sh && chmod +x entrypoint.sh
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 EXPOSE 8080
-
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
-
-# El entrypoint convierte DATABASE_URL → SPRING_DATASOURCE_* antes de arrancar
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["sh", "./entrypoint.sh"]
