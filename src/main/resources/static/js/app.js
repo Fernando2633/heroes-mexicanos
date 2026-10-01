@@ -3,7 +3,7 @@
  * Consume la API REST con fetch() · Diseño minimalista
  */
 
-const API = 'http://localhost:8080/api/v1/heroes';
+const API = '/api/v1/heroes';
 
 // ─── Estado ────────────────────────────────────────────────
 const state = {
