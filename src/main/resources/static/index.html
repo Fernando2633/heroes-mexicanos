@@ -3,270 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Héroes Mexicanos</title>
-    <meta name="description" content="Gestión de personajes históricos de México — Arquitectura Hexagonal con Spring Boot.">
+    <title>Archivo de Héroes · México</title>
+    <meta name="description" content="Catálogo de personajes históricos de México — API REST con Spring Boot.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Outfit:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-<!-- ─── Top Navigation Bar ──────────────────────────────── -->
-<nav class="topbar">
-    <a class="topbar-brand" href="#">
-        <span class="topbar-brand-icon"><i class="fa-solid fa-monument"></i></span>
-        <span class="topbar-brand-name">Héroes Mexicanos</span>
-    </a>
+<div class="layout">
 
-    <div class="topbar-divider"></div>
-
-    <div class="topbar-nav">
-        <span class="topbar-nav-item active">
-            <i class="fa-solid fa-table-list"></i> Catálogo
-        </span>
-        <button class="topbar-nav-item" id="btn-nav-new">
-            <i class="fa-solid fa-plus"></i> Nuevo héroe
-        </button>
-        <button class="topbar-nav-item" id="btn-nav-refresh">
-            <i class="fa-solid fa-arrows-rotate"></i> Recargar
-        </button>
-    </div>
-
-    <div class="topbar-right">
-        <span class="status-pill">
-            <span class="dot" id="api-dot"></span>
-            <span id="api-label">Conectado</span>
-        </span>
-    </div>
-</nav>
-
-<!-- ─── Main Page ────────────────────────────────────────── -->
-<main class="page">
-
-    <!-- Page header -->
-    <div class="page-header">
-        <div class="page-header-left">
-            <h1>Gestión de personajes históricos</h1>
-            <p>Consulta, registra y administra el catálogo de héroes nacionales.</p>
-        </div>
-        <button class="btn btn-primary" id="btn-header-new">
-            <i class="fa-solid fa-plus"></i> Nuevo héroe
-        </button>
-    </div>
-
-    <!-- Stats strip -->
-    <div class="stats-strip">
-        <div class="stat-item">
-            <span class="stat-item-label">Total héroes</span>
-            <span class="stat-item-value" id="stat-total">—</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-item-label">Épocas</span>
-            <span class="stat-item-value" id="stat-epocas">—</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-item-label">Movimientos</span>
-            <span class="stat-item-value" id="stat-movimientos">—</span>
-        </div>
-        <div class="stat-item">
-            <span class="stat-item-label">Estados de origen</span>
-            <span class="stat-item-value" id="stat-estados">—</span>
-        </div>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="toolbar">
-        <div class="search-input-wrap">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="search-input" placeholder="Buscar por nombre, época, estado…">
-        </div>
-
-        <select class="filter-select" id="filter-epoca">
-            <option value="">Todas las épocas</option>
-        </select>
-
-        <select class="filter-select" id="filter-movimiento">
-            <option value="">Todos los movimientos</option>
-        </select>
-
-        <select class="filter-select" id="filter-estado">
-            <option value="">Todos los estados</option>
-        </select>
-
-        <button class="btn btn-ghost" id="btn-reset">
-            <i class="fa-solid fa-xmark"></i> Limpiar
-        </button>
-    </div>
-
-    <!-- Data card -->
-    <div class="data-card">
-        <div class="data-card-header">
-            <div style="display:flex;align-items:center;gap:0.5rem;">
-                <span class="data-card-title">Listado</span>
-                <span class="count-badge" id="count-badge">0 registros</span>
+    <!-- ─── Barra lateral ─────────────────────────────── -->
+    <aside class="side">
+        <div class="side-logo">
+            <div class="side-logo-mark">HM</div>
+            <div>
+                <div class="side-logo-title">Archivo de Héroes</div>
+                <div class="side-logo-sub">Historia de México</div>
             </div>
-            <div style="display:flex;align-items:center;gap:0.5rem;">
-                <div class="view-toggle">
-                    <button class="view-toggle-btn active" id="btn-view-table" title="Tabla">
-                        <i class="fa-solid fa-table-list"></i>
-                    </button>
-                    <button class="view-toggle-btn" id="btn-view-cards" title="Tarjetas">
-                        <i class="fa-solid fa-border-all"></i>
-                    </button>
+        </div>
+
+        <nav class="side-menu">
+            <span class="side-link current"><i class="fa-solid fa-book-open"></i><span>Catálogo</span></span>
+            <button class="side-link" id="btn-nav-new"><i class="fa-solid fa-user-plus"></i><span>Registrar héroe</span></button>
+            <button class="side-link" id="btn-nav-refresh"><i class="fa-solid fa-rotate"></i><span>Actualizar datos</span></button>
+        </nav>
+
+        <div class="side-foot">
+            <div class="api-state">
+                <span class="api-light" id="api-dot"></span>
+                <div>
+                    <div class="api-state-cap">Servidor API</div>
+                    <div class="api-state-txt" id="api-label">Conectando…</div>
                 </div>
             </div>
         </div>
+    </aside>
 
-        <!-- Loader -->
-        <div class="loader-box" id="loader">
-            <div class="spinner"></div>
-            <span>Cargando…</span>
-        </div>
+    <!-- ─── Contenido ─────────────────────────────────── -->
+    <main class="content">
 
-        <!-- Table view -->
-        <div class="table-wrap hidden" id="view-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Nombre</th>
-                        <th>Nacimiento</th>
-                        <th>Estado</th>
-                        <th>Época</th>
-                        <th>Movimiento</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="table-body"></tbody>
-            </table>
-        </div>
+        <header class="hero-banner">
+            <div>
+                <span class="eyebrow">Panel de administración</span>
+                <h1>Personajes que hicieron historia</h1>
+                <p>Consulta, agrega y edita la información de los héroes nacionales registrados en la base de datos.</p>
+            </div>
+            <button class="b b-main" id="btn-header-new">
+                <i class="fa-solid fa-plus"></i> Agregar héroe
+            </button>
+        </header>
 
-        <!-- Cards view -->
-        <div class="cards-grid hidden" id="view-cards"></div>
+        <section class="kpis">
+            <div class="kpi">
+                <div class="kpi-ico k1"><i class="fa-solid fa-users"></i></div>
+                <div><div class="kpi-num" id="stat-total">—</div><div class="kpi-cap">Héroes registrados</div></div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-ico k2"><i class="fa-solid fa-hourglass-half"></i></div>
+                <div><div class="kpi-num" id="stat-epocas">—</div><div class="kpi-cap">Épocas</div></div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-ico k3"><i class="fa-solid fa-flag"></i></div>
+                <div><div class="kpi-num" id="stat-movimientos">—</div><div class="kpi-cap">Movimientos</div></div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-ico k4"><i class="fa-solid fa-map-location-dot"></i></div>
+                <div><div class="kpi-num" id="stat-estados">—</div><div class="kpi-cap">Estados</div></div>
+            </div>
+        </section>
 
-        <!-- Empty -->
-        <div class="empty-state hidden" id="empty-state">
-            <i class="fa-regular fa-folder-open"></i>
-            No se encontraron registros
-        </div>
-    </div>
+        <section class="panel">
+            <div class="panel-top">
+                <div class="panel-title">
+                    <h2>Registros</h2>
+                    <span class="pill-count" id="count-badge">0 registros</span>
+                </div>
+                <div class="switch">
+                    <button class="switch-opt" id="btn-view-table" title="Vista de lista">
+                        <i class="fa-solid fa-list"></i> Lista
+                    </button>
+                    <button class="switch-opt on" id="btn-view-cards" title="Vista de fichas">
+                        <i class="fa-solid fa-id-card"></i> Fichas
+                    </button>
+                </div>
+            </div>
 
-</main>
+            <div class="filters">
+                <label class="finder">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="search-input" placeholder="Busca un nombre, estado, época…">
+                </label>
+                <select class="pick" id="filter-epoca"><option value="">Todas las épocas</option></select>
+                <select class="pick" id="filter-movimiento"><option value="">Todos los movimientos</option></select>
+                <select class="pick" id="filter-estado"><option value="">Todos los estados</option></select>
+                <button class="b b-soft" id="btn-reset"><i class="fa-solid fa-filter-circle-xmark"></i> Quitar filtros</button>
+            </div>
 
-<!-- ─── Modal: Registrar / Editar ────────────────────────── -->
-<div class="overlay hidden" id="modal-form">
-    <div class="modal">
-        <div class="modal-header">
+            <div class="loading hidden" id="loader">
+                <div class="ring"></div>
+                <span>Consultando el archivo…</span>
+            </div>
+
+            <div class="list-wrap hidden" id="view-table">
+                <table class="grid">
+                    <thead>
+                        <tr>
+                            <th>Personaje</th>
+                            <th>Nacimiento</th>
+                            <th>Estado</th>
+                            <th>Época</th>
+                            <th>Movimiento</th>
+                            <th class="t-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+
+            <div class="deck hidden" id="view-cards"></div>
+
+            <div class="nothing hidden" id="empty-state">
+                <div class="nothing-ico"><i class="fa-solid fa-scroll"></i></div>
+                <strong>Sin resultados</strong>
+                <span>No hay héroes que coincidan. Agrega uno nuevo o cambia los filtros.</span>
+            </div>
+        </section>
+
+        <footer class="foot">Práctica · Spring Boot + PostgreSQL · Arquitectura hexagonal</footer>
+    </main>
+</div>
+
+<!-- ─── Ventana: Registrar / Editar ─────────────────────── -->
+<div class="veil hidden" id="modal-form">
+    <div class="sheet">
+        <div class="sheet-head">
+            <div class="sheet-head-ico"><i class="fa-solid fa-feather-pointed"></i></div>
             <h2 id="modal-form-title">Nuevo héroe</h2>
-            <button class="btn-close" id="btn-close-form">&times;</button>
+            <button class="x" id="btn-close-form" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="modal-body">
+        <div class="sheet-body">
             <form id="hero-form" autocomplete="off">
                 <input type="hidden" id="hero-id">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="nombre">Nombre(s) *</label>
+                <div class="fields">
+                    <div class="field">
+                        <label for="nombre">Nombre(s) <em>*</em></label>
                         <input type="text" id="nombre" required maxlength="100" placeholder="Ej. Miguel">
                     </div>
-                    <div class="form-group">
-                        <label for="apellido">Apellido(s) *</label>
+                    <div class="field">
+                        <label for="apellido">Apellido(s) <em>*</em></label>
                         <input type="text" id="apellido" required maxlength="100" placeholder="Ej. Hidalgo y Costilla">
                     </div>
-                    <div class="form-group">
-                        <label for="fechaNacimiento">Fecha de nacimiento *</label>
+                    <div class="field">
+                        <label for="fechaNacimiento">Fecha de nacimiento <em>*</em></label>
                         <input type="date" id="fechaNacimiento" required>
                     </div>
-                    <div class="form-group">
-                        <label for="estadoNacimiento">Estado de nacimiento *</label>
+                    <div class="field">
+                        <label for="estadoNacimiento">Estado de nacimiento <em>*</em></label>
                         <input type="text" id="estadoNacimiento" required maxlength="100" placeholder="Ej. Guanajuato">
                     </div>
-                    <div class="form-group">
-                        <label for="epoca">Época histórica *</label>
+                    <div class="field">
+                        <label for="epoca">Época histórica <em>*</em></label>
                         <input type="text" id="epoca" required maxlength="100" placeholder="Ej. Independencia">
                     </div>
-                    <div class="form-group">
-                        <label for="movimiento">Movimiento *</label>
+                    <div class="field">
+                        <label for="movimiento">Movimiento <em>*</em></label>
                         <input type="text" id="movimiento" required maxlength="150" placeholder="Ej. Movimiento Insurgente">
                     </div>
-                    <div class="form-group full">
+                    <div class="field wide">
                         <label for="descripcion">Reseña histórica</label>
-                        <textarea id="descripcion" placeholder="Breve descripción del personaje y su relevancia…"></textarea>
+                        <textarea id="descripcion" placeholder="¿Por qué es importante este personaje?"></textarea>
                     </div>
                 </div>
-                <div class="form-error hidden" id="form-error"></div>
+                <div class="alert hidden" id="form-error"></div>
             </form>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-ghost" id="btn-cancel-form">Cancelar</button>
-            <button class="btn btn-primary" id="btn-submit-form">
-                <i class="fa-solid fa-floppy-disk"></i> Guardar
-            </button>
+        <div class="sheet-foot">
+            <button class="b b-soft" id="btn-cancel-form">Cancelar</button>
+            <button class="b b-main" id="btn-submit-form"><i class="fa-solid fa-check"></i> Guardar cambios</button>
         </div>
     </div>
 </div>
 
-<!-- ─── Modal: Confirmar eliminación ─────────────────────── -->
-<div class="overlay hidden" id="modal-delete">
-    <div class="modal modal-sm">
-        <div class="modal-header">
-            <h2>Eliminar héroe</h2>
-            <button class="btn-close" id="btn-close-delete">&times;</button>
+<!-- ─── Ventana: Eliminar ───────────────────────────────── -->
+<div class="veil hidden" id="modal-delete">
+    <div class="sheet sheet-sm">
+        <div class="sheet-head">
+            <div class="sheet-head-ico danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h2>¿Eliminar registro?</h2>
+            <button class="x" id="btn-close-delete" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="modal-body">
-            <p class="confirm-text">
-                ¿Confirmas que deseas eliminar permanentemente a
-                <strong id="delete-name">este héroe</strong>?
+        <div class="sheet-body">
+            <p class="ask">
+                Se borrará a <strong id="delete-name">este héroe</strong> del catálogo.
                 Esta acción no se puede deshacer.
             </p>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-ghost" id="btn-cancel-delete">Cancelar</button>
-            <button class="btn btn-danger" id="btn-confirm-delete">
-                <i class="fa-solid fa-trash"></i> Eliminar
-            </button>
+        <div class="sheet-foot">
+            <button class="b b-soft" id="btn-cancel-delete">No, regresar</button>
+            <button class="b b-red" id="btn-confirm-delete"><i class="fa-solid fa-trash-can"></i> Sí, eliminar</button>
         </div>
     </div>
 </div>
 
-<!-- ─── Modal: Detalle ────────────────────────────────────── -->
-<div class="overlay hidden" id="modal-detail">
-    <div class="modal">
-        <div class="modal-header">
-            <h2>Expediente histórico</h2>
-            <button class="btn-close" id="btn-close-detail">&times;</button>
+<!-- ─── Ventana: Detalle ────────────────────────────────── -->
+<div class="veil hidden" id="modal-detail">
+    <div class="sheet">
+        <div class="profile-top">
+            <button class="x x-light" id="btn-close-detail" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+            <span class="eyebrow light">Ficha histórica</span>
+            <div class="profile-name" id="detail-name"></div>
+            <div class="profile-tags" id="detail-tags"></div>
         </div>
-        <div class="modal-body">
-            <div class="detail-hero-name" id="detail-name"></div>
-            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="detail-tags"></div>
-            <div class="detail-meta">
-                <div class="detail-meta-item">
-                    <div class="detail-meta-label">ID</div>
-                    <div class="detail-meta-value" id="detail-id"></div>
-                </div>
-                <div class="detail-meta-item">
-                    <div class="detail-meta-label">Fecha de nacimiento</div>
-                    <div class="detail-meta-value" id="detail-fecha"></div>
-                </div>
-                <div class="detail-meta-item">
-                    <div class="detail-meta-label">Estado de origen</div>
-                    <div class="detail-meta-value" id="detail-estado"></div>
-                </div>
-                <div class="detail-meta-item">
-                    <div class="detail-meta-label">Movimiento</div>
-                    <div class="detail-meta-value" id="detail-movimiento"></div>
-                </div>
+        <div class="sheet-body">
+            <div class="facts">
+                <div class="fact"><span>Folio</span><strong id="detail-id"></strong></div>
+                <div class="fact"><span>Nacimiento</span><strong id="detail-fecha"></strong></div>
+                <div class="fact"><span>Estado de origen</span><strong id="detail-estado"></strong></div>
+                <div class="fact"><span>Movimiento</span><strong id="detail-movimiento"></strong></div>
             </div>
-            <div class="detail-desc" id="detail-desc"></div>
+            <h3 class="sub">Reseña</h3>
+            <p class="bio" id="detail-desc"></p>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-ghost" id="btn-close-detail-2">Cerrar</button>
+        <div class="sheet-foot">
+            <button class="b b-soft" id="btn-close-detail-2">Cerrar ficha</button>
         </div>
     </div>
 </div>
 
-<!-- ─── Toasts ────────────────────────────────────────────── -->
-<div class="toast-container" id="toasts"></div>
+<div class="notes" id="toasts"></div>
 
 <script src="js/app.js"></script>
 </body>

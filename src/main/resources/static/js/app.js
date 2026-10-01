@@ -1,6 +1,6 @@
 /**
  * app.js — Lógica del cliente web para Gestión de Héroes Mexicanos
- * Consume la API REST con fetch() · Diseño minimalista
+ * Consume la API REST con fetch()
  */
 
 const API = '/api/v1/heroes';
@@ -12,7 +12,7 @@ const state = {
     epocas:   new Set(),
     movs:     new Set(),
     estados:  new Set(),
-    view:     'table',          // 'table' | 'cards'
+    view:     'cards',          // 'table' | 'cards'
     deleteId: null
 };
 
@@ -269,9 +269,9 @@ async function openDetail(id) {
         const h = await res.json();
         el.detailName.textContent = `${h.nombre} ${h.apellido}`;
         el.detailTags.innerHTML   = `
-            <span class="tag tag-accent">${esc(h.epoca)}</span>
-            <span class="tag">${esc(h.movimiento)}</span>
-            <span class="tag">${esc(h.estadoNacimiento)}</span>`;
+            <span class="chip">${esc(h.epoca)}</span>
+            <span class="chip">${esc(h.movimiento)}</span>
+            <span class="chip">${esc(h.estadoNacimiento)}</span>`;
         el.detailId.textContent      = h.id;
         el.detailFecha.textContent   = fmtDate(h.fechaNacimiento);
         el.detailEstado.textContent  = h.estadoNacimiento;
@@ -309,46 +309,66 @@ function render() {
     }
 }
 
+function initials(h) {
+    return ((h.nombre || '').trim()[0] || '') + ((h.apellido || '').trim()[0] || '');
+}
+
+function avatarClass(h) {
+    return 'av' + (Number(h.id) % 4);
+}
+
+function actionButtons(h) {
+    const name = `${esc(h.nombre)} ${esc(h.apellido)}`;
+    return `
+        <div class="btns">
+            <button class="mini see"  title="Ver ficha" onclick="openDetail(${h.id})"><i class="fa-solid fa-eye"></i></button>
+            <button class="mini edit" title="Editar"    onclick="openEdit(${h.id})"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button class="mini del"  title="Eliminar"  onclick="openDeleteModal(${h.id},'${name}')"><i class="fa-solid fa-trash-can"></i></button>
+        </div>`;
+}
+
 function renderTable(list) {
     el.tableBody.innerHTML = list.map(h => `
         <tr>
-            <td class="td-id">${h.id}</td>
             <td>
-                <div class="hero-name">${esc(h.nombre)} ${esc(h.apellido)}</div>
-                <div class="hero-desc">${esc(h.descripcion || '')}</div>
-            </td>
-            <td style="white-space:nowrap;color:var(--text-2);font-size:12px;">${fmtDate(h.fechaNacimiento)}</td>
-            <td><span class="tag">${esc(h.estadoNacimiento)}</span></td>
-            <td><span class="tag tag-accent">${esc(h.epoca)}</span></td>
-            <td><span class="tag">${esc(h.movimiento)}</span></td>
-            <td>
-                <div class="actions-cell">
-                    <button class="btn-icon view"   title="Ver detalle"  onclick="openDetail(${h.id})"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-icon edit"   title="Editar"       onclick="openEdit(${h.id})"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-icon delete" title="Eliminar"     onclick="openDeleteModal(${h.id},'${esc(h.nombre)} ${esc(h.apellido)}')"><i class="fa-solid fa-trash"></i></button>
+                <div class="who">
+                    <div class="avatar ${avatarClass(h)}">${esc(initials(h))}</div>
+                    <div>
+                        <div class="who-name">${esc(h.nombre)} ${esc(h.apellido)}</div>
+                        <div class="who-meta">${esc(h.descripcion || 'Sin reseña')}</div>
+                    </div>
                 </div>
             </td>
+            <td class="t-date">${fmtDate(h.fechaNacimiento)}</td>
+            <td><span class="chip">${esc(h.estadoNacimiento)}</span></td>
+            <td><span class="chip chip-green">${esc(h.epoca)}</span></td>
+            <td><span class="chip chip-terra">${esc(h.movimiento)}</span></td>
+            <td>${actionButtons(h)}</td>
         </tr>`).join('');
 }
 
 function renderCards(list) {
     el.viewCards.innerHTML = list.map(h => `
-        <div class="hero-card">
-            <div class="hero-card-name">${esc(h.nombre)} ${esc(h.apellido)}</div>
-            <div class="hero-card-tags">
-                <span class="tag tag-accent">${esc(h.epoca)}</span>
-                <span class="tag">${esc(h.movimiento)}</span>
-            </div>
-            <div class="hero-card-desc">${esc(h.descripcion || 'Sin reseña.')}</div>
-            <div class="hero-card-footer">
-                <span class="hero-card-date">${fmtDate(h.fechaNacimiento)} · ${esc(h.estadoNacimiento)}</span>
-                <div class="actions-cell">
-                    <button class="btn-icon view"   onclick="openDetail(${h.id})"><i class="fa-solid fa-eye"></i></button>
-                    <button class="btn-icon edit"   onclick="openEdit(${h.id})"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-icon delete" onclick="openDeleteModal(${h.id},'${esc(h.nombre)} ${esc(h.apellido)}')"><i class="fa-solid fa-trash"></i></button>
+        <article class="ficha">
+            <div class="ficha-top">
+                <div class="avatar ${avatarClass(h)}">${esc(initials(h))}</div>
+                <div>
+                    <div class="ficha-name">${esc(h.nombre)} ${esc(h.apellido)}</div>
+                    <div class="ficha-sub"><i class="fa-solid fa-location-dot"></i> ${esc(h.estadoNacimiento)} · ${fmtDate(h.fechaNacimiento)}</div>
                 </div>
             </div>
-        </div>`).join('');
+            <div class="ficha-body">
+                <div class="ficha-tags">
+                    <span class="chip chip-green">${esc(h.epoca)}</span>
+                    <span class="chip chip-terra">${esc(h.movimiento)}</span>
+                </div>
+                <p class="ficha-text">${esc(h.descripcion || 'Sin reseña registrada.')}</p>
+            </div>
+            <div class="ficha-foot">
+                <span class="ficha-id">Folio #${h.id}</span>
+                ${actionButtons(h)}
+            </div>
+        </article>`).join('');
 }
 
 // ─── Filtros locales ───────────────────────────────────────
@@ -456,8 +476,8 @@ function hideFormError() { el.formError.classList.add('hidden'); }
 
 function switchView(v) {
     state.view = v;
-    el.btnViewTable.classList.toggle('active', v === 'table');
-    el.btnViewCards.classList.toggle('active', v === 'cards');
+    el.btnViewTable.classList.toggle('on', v === 'table');
+    el.btnViewCards.classList.toggle('on', v === 'cards');
     render();
 }
 
@@ -471,13 +491,13 @@ function showLoader(on) {
 }
 
 function setApiStatus(online) {
-    el.apiDot.className   = `dot${online ? '' : ' offline'}`;
+    el.apiDot.className   = `api-light${online ? '' : ' offline'}`;
     el.apiLabel.textContent = online ? 'Conectado' : 'Desconectado';
 }
 
 function toast(msg, type = 'success') {
     const t = document.createElement('div');
-    t.className = `toast ${type}`;
+    t.className = `note ${type}`;
     t.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>${esc(msg)}`;
     el.toasts.appendChild(t);
     setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
